@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Tracker - Login & Track</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0F172A 0%, #312E81 50%, #0F172A 100%);
+            color: #fff;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Auth Screens */
+        .auth-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0F172A 0%, #312E81 50%, #0F172A 100%);
+            z-index: 1000;
+        }
+
+        .auth-screen.hidden {
+            display: none;
+        }
+
+        .auth-form-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .auth-form-container h1 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+            text-align: center;
+            background: linear-gradient(135deg, #A78BFA 0%, #F472B6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #C7D2FE;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: #A78BFA;
+            background: rgba(167, 139, 250, 0.1);
+        }
+
+        .form-group input::placeholder {
+            color: #A5B4FC;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(167, 139, 250, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .toggle-auth {
+            text-align: center;
+            margin-top: 20px;
+            color: #A5B4FC;
+        }
+
+        .toggle-auth a {
+            color: #A78BFA;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .error-message {
+            color: #FCA5A5;
+            background: rgba(239, 68, 68, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        /* App Screen */
+        .app-screen {
+            display: none;
+        }
+
+        .app-screen.show {
+            display: block;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding: 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #A78BFA 0%, #F472B6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .user-info span {
+            color: #C7D2FE;
+        }
+
+        .logout-btn {
+            padding: 8px 20px;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            border-radius: 8px;
+            color: #FCA5A5;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.4);
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            border-color: #A78BFA;
+            transform: translateY(-5px);
+            background: rgba(167, 139, 250, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            color: #C7D2FE;
+            font-size: 0.9rem;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+        }
+
+        .tab-btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%);
+        }
+
+        /* Month Nav */
+        .month-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .month-title {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            width: 45px;
+            height: 45px;
+            border: none;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: #A78BFA;
+        }
+
+        /* Habit Item */
+        .habit-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .habit-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .habit-name {
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .habit-delete {
+            background: rgba(239, 68, 68, 0.2);
+            border: none;
+            color: #FCA5A5;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .habit-delete:hover {
+            background: rgba(239, 68, 68, 0.4);
+        }
+
+        /* Days Grid */
+        .habit-days {
+            padding: 20px;
+            overflow-x: auto;
+        }
+
+        .days-grid {
+            display: grid;
+            gap: 8px;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        }
+
+        .day-btn {
+            width: 45px;
+            height: 45px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .day-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .day-btn.completed {
+            background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%);
+            border-color: #A78BFA;
+        }
+
+        /* Add Habit */
+        .add-habit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%);
+            border: none;
+            border-radius: 15px;
+            color: #fff;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+
+        .add-habit-form {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: none;
+        }
+
+        .add-habit-form.show {
+            display: block;
+        }
+
+        .form-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .form-buttons button {
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background: linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%);
+            color: #fff;
+        }
+
+        .cancel-btn {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #A78BFA;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                text-align: center;
+                gap: 15px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .month-nav {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Screen -->
+    <div class="auth-screen" id="authScreen">
+        <!-- Login Form -->
+        <div class="auth-form-container" id="loginForm">
+            <h1>🔐 Login</h1>
+            <div class="error-message" id="loginError"></div>
+            <form onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn" id="loginBtn">Login</button>
+            </form>
+            <div class="toggle-auth">
+                Don't have an account? <a onclick="switchToSignup()">Sign up</a>
+            </div>
+        </div>
+
+        <!-- Signup Form -->
+        <div class="auth-form-container hidden" id="signupForm">
+            <h1>✨ Sign Up</h1>
+            <div class="error-message" id="signupError"></div>
+            <form onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="signupUsername" placeholder="Choose a username" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="signupEmail" placeholder="your@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="signupPassword" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn" id="signupBtn">Create Account</button>
+            </form>
+            <div class="toggle-auth">
+                Already have an account? <a onclick="switchToLogin()">Login</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Screen -->
+    <div class="app-screen" id="appScreen">
+        <div class="container">
+            <!-- Header -->
+            <header>
+                <h1>📊 Habit Tracker</h1>
+                <div class="user-info">
+                    <span>Welcome, <strong id="usernameDisplay"></strong></span>
+                    <button class="logout-btn" onclick="logout()">Logout</button>
+                </div>
+            </header>
+
+            <!-- Stats -->
+            <div class="stats-grid" id="statsGrid"></div>
+
+            <!-- Tabs -->
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('dashboard')">Dashboard</button>
+                <button class="tab-btn" onclick="switchTab('tracker')">Daily Tracker</button>
+            </div>
+
+            <!-- Dashboard Tab -->
+            <div id="dashboard-tab" class="tab-content">
+                <div id="habitsContainer"></div>
+            </div>
+
+            <!-- Tracker Tab -->
+            <div id="tracker-tab" class="tab-content hidden">
+                <div class="month-nav">
+                    <h2 class="month-title" id="monthTitle"></h2>
+                    <div class="nav-buttons">
+                        <button class="nav-btn" onclick="previousMonth()">←</button>
+                        <button class="nav-btn" onclick="goToday()">Today</button>
+                        <button class="nav-btn" onclick="nextMonth()">→</button>
+                    </div>
+                </div>
+
+                <button class="add-habit-btn" onclick="toggleAddForm()">+ Add New Habit</button>
+
+                <div class="add-habit-form" id="addHabitForm">
+                    <input type="text" id="habitInput" placeholder="Enter habit name..." onkeypress="handleEnter(event)">
+                    <div class="form-buttons">
+                        <button class="add-btn" onclick="addNewHabit()">Add</button>
+                        <button class="cancel-btn" onclick="toggleAddForm()">Cancel</button>
+                    </div>
+                </div>
+
+                <div id="trackerContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api'; // Change this to your hosting URL
+        let token = localStorage.getItem('token');
+        let user = JSON.parse(localStorage.getItem('user'));
+        let habits = [];
+        let tracking = {};
+        let currentDate = new Date();
+
+        // Init
+        if (token && user) {
+            showAppScreen();
+            loadHabits();
+            updateMonthTitle();
+        } else {
+            showAuthScreen();
+        }
+
+        // ===== AUTH FUNCTIONS =====
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+            const btn = document.getElementById('loginBtn');
+
+            try {
+                btn.disabled = true;
+                errorEl.classList.remove('show');
+
+                const response = await fetch(`${API_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    errorEl.textContent = data.error;
+                    errorEl.classList.add('show');
+                    return;
+                }
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                token = data.token;
+                user = data.user;
+
+                showAppScreen();
+                loadHabits();
+            } catch (error) {
+                errorEl.textContent = 'Connection error. Make sure backend is running!';
+                errorEl.classList.add('show');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function handleSignup(e) {
+            e.preventDefault();
+            const username = document.getElementById('signupUsername').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const errorEl = document.getElementById('signupError');
+            const btn = document.getElementById('signupBtn');
+
+            try {
+                btn.disabled = true;
+                errorEl.classList.remove('show');
+
+                const response = await fetch(`${API_URL}/auth/signup`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    errorEl.textContent = data.error;
+                    errorEl.classList.add('show');
+                    return;
+                }
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+                token = data.token;
+                user = data.user;
+
+                showAppScreen();
+                loadHabits();
+            } catch (error) {
+                errorEl.textContent = 'Connection error. Make sure backend is running!';
+                errorEl.classList.add('show');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            token = null;
+            user = null;
+            habits = [];
+            tracking = {};
+            showAuthScreen();
+            switchToLogin();
+        }
+
+        // ===== UI FUNCTIONS =====
+
+        function showAuthScreen() {
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('appScreen').classList.remove('show');
+        }
+
+        function showAppScreen() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.add('show');
+            document.getElementById('usernameDisplay').textContent = user.username;
+        }
+
+        function switchToLogin() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('signupForm').classList.add('hidden');
+        }
+
+        function switchToSignup() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('signupForm').classList.remove('hidden');
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+            document.getElementById(tab + '-tab').classList.remove('hidden');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (tab === 'dashboard') {
+                renderDashboard();
+            } else {
+                renderTracker();
+            }
+        }
+
+        // ===== HABIT FUNCTIONS =====
+
+        async function loadHabits() {
+            try {
+                const response = await fetch(`${API_URL}/habits`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                habits = await response.json();
+                updateStats();
+                renderDashboard();
+                updateMonthTitle();
+            } catch (error) {
+                console.error('Error loading habits:', error);
+            }
+        }
+
+        async function addNewHabit() {
+            const input = document.getElementById('habitInput');
+            const name = input.value.trim();
+
+            if (!name) return;
+
+            try {
+                const colors = ['#A78BFA', '#14B8A6', '#F472B6', '#F59E0B', '#8B5CF6', '#38BDF8'];
+                const response = await fetch(`${API_URL}/habits`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        name,
+                        color: colors[habits.length % colors.length],
+                        goal: 7
+                    })
+                });
+
+                if (response.ok) {
+                    input.value = '';
+                    toggleAddForm();
+                    loadHabits();
+                }
+            } catch (error) {
+                console.error('Error adding habit:', error);
+            }
+        }
+
+        async function deleteHabit(id) {
+            if (!confirm('Delete this habit?')) return;
+
+            try {
+                await fetch(`${API_URL}/habits/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                loadHabits();
+            } catch (error) {
+                console.error('Error deleting habit:', error);
+            }
+        }
+
+        async function toggleDay(habitId, dateStr, completed) {
+            try {
+                await fetch(`${API_URL}/tracking`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ habitId, date: dateStr, completed: !completed })
+                });
+                loadTracking();
+            } catch (error) {
+                console.error('Error toggling day:', error);
+            }
+        }
+
+        async function loadTracking() {
+            try {
+                const yearMonth = currentDate.toISOString().slice(0, 7);
+                const response = await fetch(`${API_URL}/tracking/${yearMonth}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+
+                tracking = {};
+                data.forEach(t => {
+                    if (!tracking[t.date]) tracking[t.date] = {};
+                    tracking[t.date][t.habitId] = t.completed;
+                });
+
+                renderTracker();
+            } catch (error) {
+                console.error('Error loading tracking:', error);
+            }
+        }
+
+        // ===== RENDER FUNCTIONS =====
+
+        function updateStats() {
+            const stats = [
+                { label: 'Total Habits', value: habits.length, icon: '📊' },
+                { label: 'Active', value: habits.length, icon: '🎯' },
+                { label: 'Avg Completion', value: '—', icon: '✨' },
+                { label: 'Tracking', value: 'Yes', icon: '🔥' },
+            ];
+
+            document.getElementById('statsGrid').innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <div style="font-size: 2rem; margin-bottom: 10px;">${stat.icon}</div>
+                    <div class="stat-value">${stat.value}</div>
+                    <div class="stat-label">${stat.label}</div>
+                </div>
+            `).join('');
+        }
+
+        function renderDashboard() {
+            const html = habits.map(habit => `
+                <div class="habit-item">
+                    <div class="habit-header">
+                        <div>
+                            <div class="habit-name">${habit.name}</div>
+                            <div style="color: #A5B4FC; font-size: 0.9rem; margin-top: 5px;">Goal: ${habit.goal} days/week</div>
+                        </div>
+                        <button class="habit-delete" onclick="deleteHabit('${habit._id}')">Delete</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('habitsContainer').innerHTML = html || '<div style="text-align: center; padding: 40px; color: #A5B4FC;">No habits yet. Add one in Daily Tracker!</div>';
+        }
+
+        function updateMonthTitle() {
+            const monthName = currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            document.getElementById('monthTitle').textContent = monthName;
+        }
+
+        function renderTracker() {
+            const days = [];
+            const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+            const lastDay = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
+
+            for (let i = 1; i <= lastDay.getDate(); i++) {
+                days.push(new Date(currentDate.getFullYear(), currentDate.getMonth(), i));
+            }
+
+            const html = habits.map(habit => {
+                const daysHTML = days.map((date, idx) => {
+                    const dateStr = date.toISOString().split('T')[0];
+                    const completed = tracking[dateStr]?.[habit._id] || false;
+                    const isToday = dateStr === new Date().toISOString().split('T')[0];
+
+                    return `
+                        <button 
+                            class="day-btn ${completed ? 'completed' : ''}"
+                            onclick="toggleDay('${habit._id}', '${dateStr}', ${completed})"
+                            title="${date.toDateString()}"
+                            style="${isToday ? 'border: 2px solid #F472B6;' : ''}"
+                        >
+                            ${completed ? '✓' : date.getDate()}
+                        </button>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="habit-item">
+                        <div class="habit-header">
+                            <div>
+                                <div class="habit-name">${habit.name}</div>
+                            </div>
+                            <button class="habit-delete" onclick="deleteHabit('${habit._id}')">Delete</button>
+                        </div>
+                        <div class="habit-days">
+                            <div class="days-grid">${daysHTML}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('trackerContainer').innerHTML = html || '<div style="text-align: center; padding: 40px; color: #A5B4FC;">No habits yet. Click "Add New Habit" above!</div>';
+        }
+
+        // ===== UTILITY =====
+
+        function toggleAddForm() {
+            document.getElementById('addHabitForm').classList.toggle('show');
+            if (document.getElementById('addHabitForm').classList.contains('show')) {
+                document.getElementById('habitInput').focus();
+            }
+        }
+
+        function handleEnter(e) {
+            if (e.key === 'Enter') addNewHabit();
+        }
+
+        function previousMonth() {
+            currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1);
+            updateMonthTitle();
+            loadTracking();
+        }
+
+        function nextMonth() {
+            currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1);
+            updateMonthTitle();
+            loadTracking();
+        }
+
+        function goToday() {
+            currentDate = new Date();
+            updateMonthTitle();
+            loadTracking();
+        }
+    </script>
+</body>
+</html>
